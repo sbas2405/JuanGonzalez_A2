@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 In this R Markdown file, I will work with a dataset comprising 22 variables and a total of 253,680 records. Through this dataset, I will demonstrate the application of data analysis techniques, including K-nearest neighbors (Knn) and various forms of regression such as linear and multilinear regression.
 
 To begin, it is essential to import the dataset into the program, as illustrated in the subsequent section of the code.
-```{r results= FALSE}
+```{r include=FALSE}
 library (tidyverse)
 library(dplyr)
 library(caret)
@@ -24,7 +24,7 @@ library(class)
 library(gmodels)
 ```
 
-```{r results= FALSE}
+```{r}
 folder <- dirname(rstudioapi :: getSourceEditorContext()$path)
 
 parentFolder <- dirname (folder)
@@ -33,20 +33,20 @@ data_set_dia <-
 ```
 After loading our data set we must inspect and analyze the information contained in this file. This dataset encompasses a wide range of variables pertaining to individuals' health and various factors that could potentially impact the occurrence of diabetes. It incorporates information related to health indicators, lifestyle choices, and other relevant parameters, offering valuable insights into the complex interplay of factors contributing to diabetes.
 Subsequently, by employing the 'psych' function, we can extract a comprehensive statistical analysis of the 22 variables encompassed within the dataset. This analysis comprises metrics such as the mean, standard deviation, minimum, maximum, and various others.
-```{r results= FALSE}
+```{r include= FALSE}
 library(psych)
 psych::describe(data_set_dia,fast = TRUE)
 ```
 In the end, we will utilize the 'mutate' function to convert all non-"= 0" values within the 'Diabetes_012' variable. Subsequently, we will present a concise table that displays the count of data classified as either "0" or "1" within this specific variable within our dataset.
-```{r results= FALSE}
+```{r}
 test_diabetes<- data_set_dia %>% mutate(Diabetes_012 = ifelse(Diabetes_012!= "0", "1",Diabetes_012))
 ```
 
-```{r results= FALSE}
+```{r include= FALSE}
 Conteo_Diabetes<- table(test_diabetes$Diabetes_012)
 ```
 
-```{r results= FALSE}
+```{r}
 Conteo_Diabetes
 ```
 
@@ -56,27 +56,27 @@ Conteo_Diabetes
 #### First Prediction
 
 In this section of the document, we will apply the K-nearest neighbors (KNN) predictive technique. To achieve our predictions, we will select three distinct variables. Initially, we will create a stratified sample, extracting roughly 1% of the dataset to serve as the training data for our models.
-```{r results= FALSE}
+```{r}
 ss_diabetes <- test_diabetes %>%
   group_by(Diabetes_012) %>%
   sample_n(1269, replace = TRUE) %>%
   ungroup()
 ```
 
-```{r results= FALSE}
+```{r include= FALSE}
 Conteo_ss_Diabetes<- table(ss_diabetes$Diabetes_012)
 ```
 
-```{r results= FALSE}
+```{r}
 Conteo_ss_Diabetes
 ```
 
 Now, in this stage, we will determine the optimal value for "K" and proceed to train the K-nearest neighbors (KNN) model for predicting diabetes.
-```{r results= FALSE}
+```{r}
 set.seed(24)  
 ss_diabetes_knn <- ss_diabetes %>%
   group_by(Diabetes_012) %>%
-  sample_n(1269, replace = TRUE) %>%
+  sample_n(1234, replace = TRUE) %>%
   ungroup()
 
 
@@ -95,7 +95,7 @@ train.data$Diabetes_012 <- factor(train.data$Diabetes_012)
 test.data$Diabetes_012 <- factor(test.data$Diabetes_012)
 ```
 
-```{r results= FALSE}
+```{r}
 
 ctrl <- trainControl(method = "cv", p = 0.7)
 knnFit <- train(Diabetes_012 ~ .
@@ -111,8 +111,163 @@ plot(knnFit)
 # Make predictions
 knnPredict <- predict(knnFit, newdata = test.data)
 
-# Creates the confusion matrix
+# Creates the matrix
 confusionMatrix(data = knnPredict, reference = test.data$Diabetes_012)
 ```
 
 #### Second Prediction
+```{r}
+predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "DiffWalk", "Education", "Income")
+train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
+test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
+
+
+ctrl <- trainControl(method = "cv", number = 5)
+knnFit2 <- train(Diabetes_012 ~ .
+                 , data = train.data2
+                 , method = "knn", trControl = ctrl
+                 , preProcess = c("range") # c("center", "scale") for z-score
+                 , tuneLength = 30)
+
+plot(knnFit2)
+```
+
+```{r}
+knnPredict2 <- predict(knnFit2, newdata = test.data2)
+
+confusionMatrix(data = knnPredict2, reference = test.data2$Diabetes_012)
+```
+
+#### Third Prediction
+```{r}
+predictors_to_remove2 <- c("ChoclCheck", "MentHlth","PhysHlth", "Fruits", "Veggies")
+train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove2)]
+test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove2)]
+
+ctrl2 <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+knnFit3 <- train(Diabetes_012 ~ .
+                 , data = train.data3
+                 , method = "knn", trControl = ctrl2
+                 , preProcess = c("range") # c("center", "scale") for z-score
+                 , tuneLength = 30)
+
+plot(knnFit3)
+```
+
+```{r}
+knnPredict3 <- predict(knnFit3, newdata = test.data3)
+
+confusionMatrix(data = knnPredict3, reference = test.data3$Diabetes_012)
+```
+
+### KNN Heart Disease Prediction
+#### First Prediction
+```{r results= FALSE}
+
+set.seed(24)
+ss_heartDiseaseorAttack <- ss_diabetes %>%
+  group_by(HeartDiseaseorAttack) %>%
+  sample_n(1234, replace = TRUE) %>%
+  ungroup()
+
+predictors <- c("Diabetes_012","HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke",  "PhysActivity", "Fruits", "Veggies", "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth", "MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age", "Education", "Income")
+
+train.data <- ss_heartDiseaseorAttack[sample.index, c(predictors, "HeartDiseaseorAttack"), drop = FALSE]
+test.data <- ss_heartDiseaseorAttack[-sample.index, c(predictors, "HeartDiseaseorAttack"), drop = FALSE]
+
+train.data$HeartDiseaseorAttack <- factor(train.data$HeartDiseaseorAttack)
+test.data$HeartDiseaseorAttack <- factor(test.data$HeartDiseaseorAttack)
+
+ctrl <- trainControl(method = "cv", p = 0.7)
+knnFit <- train(HeartDiseaseorAttack ~ .
+                , data = train.data
+                , method = "knn", trControl = ctrl
+                , preProcess = c("range") # c("center", "scale") for z-score
+                , tuneLength = 30)
+
+knnPredict <- predict(knnFit, newdata = test.data)
+
+
+train.data <- ss_heartDiseaseorAttack[sample.index, c(predictors, "HeartDiseaseorAttack"), drop = FALSE]
+test.data <- ss_heartDiseaseorAttack[-sample.index, c(predictors, "HeartDiseaseorAttack"), drop = FALSE]
+
+train.data$HeartDiseaseorAttack <- factor(train.data$HeartDiseaseorAttack)
+test.data$HeartDiseaseorAttack <- factor(test.data$HeartDiseaseorAttack)
+
+ctrl <- trainControl(method = "cv", p = 0.5)
+knnFit <- train(HeartDiseaseorAttack ~ .
+                , data = train.data
+                , method = "knn", trControl = ctrl
+                , preProcess = c("range") # c("center", "scale") for z-score
+                , tuneLength = 30)
+
+
+knnPredict <- predict(knnFit, newdata = test.data)
+confusionMatrix(data = knnPredict, reference = test.data$HeartDiseaseorAttack)
+```
+
+#### Secon Prediction
+```{r results=false}
+predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "DiffWalk", "Education", "Income")
+train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
+test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
+
+ctrl <- trainControl(method = "cv", number = 10)
+knnFit2 <- train(HeartDiseaseorAttack ~ .
+                 , data = train.data2
+                 , method = "knn", trControl = ctrl
+                 , preProcess = c("range") # c("center", "scale") for z-score
+                 , tuneLength = 30)
+
+knnPredict2 <- predict(knnFit2, newdata = test.data2)
+confusionMatrix(data = knnPredict2, reference = test.data2$HeartDiseaseorAttack)
+```
+
+#### Third Prediction
+```{r results= FALSE}
+predictors_to_remove2 <- c("ChoclCheck", "MentHlth","HvyAlcoholConsump", "Fruits", "Veggies")
+train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove2)]
+test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove2)]
+
+ctrl2 <- trainControl(method = "repeatedcv", number = 15, repeats = 5)
+knnFit3 <- train(HeartDiseaseorAttack ~ .
+                 , data = train.data3
+                 , method = "knn", trControl = ctrl2
+                 , preProcess = c("range") # c("center", "scale") for z-score
+                 , tuneLength = 30)
+
+knnPredict3 <- predict(knnFit3, newdata = test.data3)
+confusionMatrix(data = knnPredict3, reference = test.data3$HeartDiseaseorAttack)
+```
+
+##KNN Find Sex Prediction
+In the upcoming analysis, we will utilize the K-nearest neighbors (KNN) algorithm to perform sex prediction.
+#### First Prediction
+```{r results= FALSE}
+
+set.seed(24)
+ss_sex <- ss_diabetes %>%
+  group_by(Sex) %>%
+  sample_n(1234, replace = TRUE) %>%
+  ungroup()
+
+predictors <- c("Diabetes_012","HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke", "HeartDiseaseorAttack" , "PhysActivity", "Fruits", "Veggies", "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth", "MentHlth", "PhysHlth", "DiffWalk", "Age", "Education", "Income")
+
+train.data <- ss_sex[sample.index, c(predictors, "Sex"), drop = FALSE]
+test.data <- ss_sex[-sample.index, c(predictors, "Sex"), drop = FALSE]
+
+train.data$Sex <- factor(train.data$Sex)
+test.data$Sex <- factor(test.data$Sex)
+
+ctrl <- trainControl(method = "cv", p = 0.5)
+knnFit <- train(Sex ~ .
+                , data = train.data
+                , method = "knn", trControl = ctrl
+                , preProcess = c("range") # c("center", "scale") for z-score
+                , tuneLength = 30)
+
+
+knnPredict <- predict(knnFit, newdata = test.data)
+confusionMatrix(data = knnPredict, reference = test.data$Sex)
+```
+
