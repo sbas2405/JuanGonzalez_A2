@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## KNN, LINEAR REGRESSION AND MULTILINEAR REGRESSION IN A DIABETES DATASET
 
+## PART 1: Data Exploration
+
 In this R Markdown file, I will work with a dataset comprising 22 variables and a total of 253,680 records. Through this dataset, I will demonstrate the application of data analysis techniques, including K-nearest neighbors (Knn) and various forms of regression such as linear and multilinear regression.
 
 To begin, it is essential to import the dataset into the program, as illustrated in the subsequent section of the code.
@@ -47,3 +49,70 @@ Conteo_Diabetes<- table(test_diabetes$Diabetes_012)
 ```{r results= FALSE}
 Conteo_Diabetes
 ```
+
+## PART 2: KNN
+
+### KNN Diabetes Prediction
+#### First Prediction
+
+In this section of the document, we will apply the K-nearest neighbors (KNN) predictive technique. To achieve our predictions, we will select three distinct variables. Initially, we will create a stratified sample, extracting roughly 1% of the dataset to serve as the training data for our models.
+```{r results= FALSE}
+ss_diabetes <- test_diabetes %>%
+  group_by(Diabetes_012) %>%
+  sample_n(1269, replace = TRUE) %>%
+  ungroup()
+```
+
+```{r results= FALSE}
+Conteo_ss_Diabetes<- table(ss_diabetes$Diabetes_012)
+```
+
+```{r results= FALSE}
+Conteo_ss_Diabetes
+```
+
+Now, in this stage, we will determine the optimal value for "K" and proceed to train the K-nearest neighbors (KNN) model for predicting diabetes.
+```{r results= FALSE}
+set.seed(24)  
+ss_diabetes_knn <- ss_diabetes %>%
+  group_by(Diabetes_012) %>%
+  sample_n(1269, replace = TRUE) %>%
+  ungroup()
+
+
+sample.index <- sample(1:nrow(ss_diabetes_knn)
+                       ,nrow(ss_diabetes_knn)*0.7
+                       ,replace = F)
+
+
+predictors <- c("HighBP", "HighChol", "CholCheck", "BMI", "Smoker", "Stroke", "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies", "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth", "MentHlth", "PhysHlth", "DiffWalk", "Sex", "Age", "Education", "Income")
+
+train.data <- ss_diabetes_knn[sample.index, c(predictors, "Diabetes_012"), drop = FALSE]
+test.data <- ss_diabetes_knn[-sample.index, c(predictors, "Diabetes_012"), drop = FALSE]
+
+
+train.data$Diabetes_012 <- factor(train.data$Diabetes_012)
+test.data$Diabetes_012 <- factor(test.data$Diabetes_012)
+```
+
+```{r results= FALSE}
+
+ctrl <- trainControl(method = "cv", p = 0.7)
+knnFit <- train(Diabetes_012 ~ .
+                , data = train.data
+                , method = "knn", trControl = ctrl
+                , preProcess = c("range") # c("center", "scale") for z-score
+                , tuneLength = 50)
+
+plot(knnFit)
+```
+
+```{r results= FALSE}
+# Make predictions
+knnPredict <- predict(knnFit, newdata = test.data)
+
+# Creates the confusion matrix
+confusionMatrix(data = knnPredict, reference = test.data$Diabetes_012)
+```
+
+#### Second Prediction
