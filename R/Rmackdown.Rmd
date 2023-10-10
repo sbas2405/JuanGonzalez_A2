@@ -2,7 +2,7 @@
 title: "KNN, Linear regression, and multilinear regressio"
 author: "Juan Sebastian Gonzalez"
 date: "2023-10-09"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -97,12 +97,12 @@ test.data$Diabetes_012 <- factor(test.data$Diabetes_012)
 
 ```{r}
 
-ctrl <- trainControl(method = "cv", p = 0.7)
+ctrl <- trainControl(method = "cv", p = 0.5)
 knnFit <- train(Diabetes_012 ~ .
                 , data = train.data
                 , method = "knn", trControl = ctrl
                 , preProcess = c("range") # c("center", "scale") for z-score
-                , tuneLength = 50)
+                , tuneLength = 30)
 
 plot(knnFit)
 ```
@@ -117,7 +117,7 @@ confusionMatrix(data = knnPredict, reference = test.data$Diabetes_012)
 
 #### Second Prediction
 ```{r}
-predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "DiffWalk", "Education", "Income")
+predictors_to_remove <- c("Smoker", "NoDocbcCost", "DiffWalk", "Education", "Income")
 train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
 test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
 
@@ -206,9 +206,9 @@ knnPredict <- predict(knnFit, newdata = test.data)
 confusionMatrix(data = knnPredict, reference = test.data$HeartDiseaseorAttack)
 ```
 
-#### Secon Prediction
-```{r results=false}
-predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "DiffWalk", "Education", "Income")
+#### Second Prediction
+```{r}
+predictors_to_remove <- c("AnyHealthcare", "HighChol", "DiffWalk", "Education", "Income")
 train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
 test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
 
@@ -224,8 +224,8 @@ confusionMatrix(data = knnPredict2, reference = test.data2$HeartDiseaseorAttack)
 ```
 
 #### Third Prediction
-```{r results= FALSE}
-predictors_to_remove2 <- c("ChoclCheck", "MentHlth","HvyAlcoholConsump", "Fruits", "Veggies")
+```{r}
+predictors_to_remove2 <- c("ChoclCheck", "MentHlth","HvyAlcoholConsump", "Fruits", "HighChol")
 train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove2)]
 test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove2)]
 
@@ -274,7 +274,7 @@ confusionMatrix(data = knnPredict, reference = test.data$Sex)
 #### Second Prediction
 ```{r results= FALSE}
 
-predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "DiffWalk", "Age", "PhysActivity")
+predictors_to_remove <- c("HeartDiseaseorAttack" , "NoDocbcCost", "Smoker", "Age", "PhysActivity")
 train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
 test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
 
@@ -291,7 +291,7 @@ confusionMatrix(data = knnPredict2, reference = test.data2$Sex)
 
 #### Third Prediction
 ```{r results= FALSE}
-predictors_to_remove2 <- c("ChoclCheck", "MentHlth","HvyAlcoholConsump", "Fruits", "Veggies")
+predictors_to_remove2 <- c("Smoker", "MentHlth","HvyAlcoholConsump", "PhysActivity", "Veggies")
 train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove2)]
 test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove2)]
 
@@ -339,7 +339,7 @@ print(model)
 
 #### Second Prediction
 ```{r results= FALSE}
-predictors_to_remove <- c("AnyHealthcare", "CholCheck", "MentHlth", "Education", "Sex")
+predictors_to_remove <- c("AnyHealthcare", "PhysActivity", "MentHlth", "Education", "Smoker")
 
 train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
 test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
@@ -357,7 +357,7 @@ print(model)
 
 #### Third Prediction
 ```{r results= FALSE}
-predictors_to_remove <- c("Income", "Stroke", "NoDocbcCost", "Veggies", "HvyAlcoholConsump")
+predictors_to_remove <- c("ChoclCheck", "MentHlth","Smoker", "PhysActivity", "Veggies")
 
 train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove)]
 test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove)]
@@ -397,7 +397,7 @@ print(model)
 
 #### Second Prediction
 ```{r results= FALSE}
-predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "Education", "Age", "Income")
+predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "Education","Smoker", "Income")
 train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
 test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
 
@@ -413,7 +413,7 @@ print(model)
 
 #### Third Prediction
 ```{r results= FALSE}
-predictors_to_remove <- c("Income", "Stroke", "NoDocbcCost", "Veggies", "HvyAlcoholConsump")
+predictors_to_remove <- c("AnyHealthcare", "CholCheck", "NoDocbcCost", "Education", "Sex")
 
 train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove)]
 test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove)]
@@ -425,3 +425,4 @@ model <- train(MentHlth ~ ., data = train.data3, method = "lm",
                trControl = train.control)
 print(model)
 ```
+In conclusion, this comprehensive programming effort encompassed a series of predictive models and data analyses applied to a diverse dataset. We explored various machine learning techniques, including K-Nearest Neighbors (KNN) and Linear Regression, to predict health-related outcomes such as diabetes, heart disease, and other health indicators. Through iterative feature selection and model refinement, we gained valuable insights into the key factors influencing these health outcomes. These models provide a foundation for understanding and potentially mitigating health risks in populations, demonstrating the potential of data-driven approaches in healthcare and public health research. The code and methodologies presented here can serve as a valuable resource for future research and applications in the field of health data analysis.
