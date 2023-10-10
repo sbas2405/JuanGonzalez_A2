@@ -306,3 +306,122 @@ knnFit3 <- train(Sex ~ .
 knnPredict3 <- predict(knnFit3, newdata = test.data3)
 confusionMatrix(data = knnPredict3, reference = test.data3$Sex)
 ```
+
+## PART 3: Linear Regression BMI
+##### First Prediction
+```{r}
+folder <- dirname(rstudioapi :: getSourceEditorContext()$path)
+parentFolder <- dirname (folder)
+data <-
+  read.csv(paste0(parentFolder,"/DATASET/diabetes_012.csv"))
+data$Diabetes_012 <- ifelse(data$Diabetes_012 == 0, 0, 1)
+set.seed(24)
+data_estratificada2 <- data[sample(nrow(data), 3000), ]
+
+predictors <- colnames(data_estratificada2)[-5]
+sample.index <- sample(1:nrow(data_estratificada2),
+                       nrow(data_estratificada2) * 0.5,
+                       replace = FALSE)
+
+
+train.data <- data_estratificada2[sample.index, c(predictors, "BMI"), drop = FALSE]
+test.data <- data_estratificada2[-sample.index, c(predictors, "BMI"), drop = FALSE]
+
+ins_model <- lm(BMI ~ ., data = train.data)
+
+summary(ins_model)
+
+train.control <- trainControl(method = "cv", number = 10 )
+model <- train(BMI ~ ., data = train.data, method = "lm",
+               trControl = train.control)
+print(model)
+```
+
+#### Second Prediction
+```{r results= FALSE}
+predictors_to_remove <- c("AnyHealthcare", "CholCheck", "MentHlth", "Education", "Sex")
+
+train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
+test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
+
+ins_model <- lm(BMI ~ ., data = train.data2)
+
+summary(ins_model)
+
+train.control <- trainControl(method = "cv", number = 5)
+model <- train(BMI ~ ., data = train.data2, method = "lm",
+               trControl = train.control)
+
+print(model)
+```
+
+#### Third Prediction
+```{r results= FALSE}
+predictors_to_remove <- c("Income", "Stroke", "NoDocbcCost", "Veggies", "HvyAlcoholConsump")
+
+train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove)]
+test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove)]
+
+ins_model <- lm(BMI ~ ., data = train.data3)
+
+summary(ins_model)
+train.control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+model <- train(BMI ~ ., data = train.data3, method = "lm",
+               trControl = train.control)
+print(model)
+```
+
+### Linear Regression MentHlth
+#### First Prediction
+```{r results= FALSE}
+set.seed(24)
+data_estratificada2 <- data[sample(nrow(data), 3000), ]
+
+predictors <- colnames(data_estratificada2)[-16]
+sample.index <- sample(1:nrow(data_estratificada2),
+                       nrow(data_estratificada2) * 0.5,
+                       replace = FALSE)
+
+train.data <- data_estratificada2[sample.index, c(predictors, "MentHlth"), drop = FALSE]
+test.data <- data_estratificada2[-sample.index, c(predictors, "MentHlth"), drop = FALSE]
+
+ins_model <- lm(MentHlth ~ ., data = train.data)
+
+summary(ins_model)
+
+train.control <- trainControl(method = "cv", number = 10 )
+model <- train(MentHlth ~ ., data = train.data, method = "lm",
+               trControl = train.control)
+print(model)
+```
+
+#### Second Prediction
+```{r results= FALSE}
+predictors_to_remove <- c("AnyHealthcare", "NoDocbcCost", "Education", "Age", "Income")
+train.data2 <- train.data[, !(names(train.data) %in% predictors_to_remove)]
+test.data2 <- test.data[, !(names(test.data) %in% predictors_to_remove)]
+
+ins_model <- lm(MentHlth ~ ., data = train.data2)
+
+summary(ins_model)
+
+train.control <- trainControl(method = "cv", number = 5)
+model <- train(MentHlth ~ ., data = train.data2, method = "lm",
+               trControl = train.control)
+print(model)
+```
+
+#### Third Prediction
+```{r results= FALSE}
+predictors_to_remove <- c("Income", "Stroke", "NoDocbcCost", "Veggies", "HvyAlcoholConsump")
+
+train.data3 <- train.data2[, !(names(train.data2) %in% predictors_to_remove)]
+test.data3 <- test.data2[, !(names(test.data2) %in% predictors_to_remove)]
+ins_model <- lm(MentHlth ~ ., data = train.data3)
+summary(ins_model)
+
+train.control <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
+model <- train(MentHlth ~ ., data = train.data3, method = "lm",
+               trControl = train.control)
+print(model)
+```
