@@ -1,7 +1,7 @@
 ---
 title: "KNN, Linear regression, and multilinear regressio"
 author: "Juan Sebastian Gonzalez"
-date: "2023-10-08"
+date: "2023-10-09"
 output: html_document
 ---
 
@@ -9,5 +9,41 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## KNN, LINEAR REGRESSION AND MULTILINEAR REGRESSION IN A DIABETES DATASET
 
+In this R Markdown file, I will work with a dataset comprising 22 variables and a total of 253,680 records. Through this dataset, I will demonstrate the application of data analysis techniques, including K-nearest neighbors (Knn) and various forms of regression such as linear and multilinear regression.
+
+To begin, it is essential to import the dataset into the program, as illustrated in the subsequent section of the code.
+```{r results= FALSE}
+library (tidyverse)
+library(dplyr)
+library(caret)
+library(class)
+library(gmodels)
+```
+
+```{r results= FALSE}
+folder <- dirname(rstudioapi :: getSourceEditorContext()$path)
+
+parentFolder <- dirname (folder)
+data_set_dia <-
+  read.csv(paste0(parentFolder,"/DATASET/diabetes_012.csv"))
+```
+After loading our data set we must inspect and analyze the information contained in this file. This dataset encompasses a wide range of variables pertaining to individuals' health and various factors that could potentially impact the occurrence of diabetes. It incorporates information related to health indicators, lifestyle choices, and other relevant parameters, offering valuable insights into the complex interplay of factors contributing to diabetes.
+Subsequently, by employing the 'psych' function, we can extract a comprehensive statistical analysis of the 22 variables encompassed within the dataset. This analysis comprises metrics such as the mean, standard deviation, minimum, maximum, and various others.
+```{r results= FALSE}
+library(psych)
+psych::describe(data_set_dia,fast = TRUE)
+```
+In the end, we will utilize the 'mutate' function to convert all non-"= 0" values within the 'Diabetes_012' variable. Subsequently, we will present a concise table that displays the count of data classified as either "0" or "1" within this specific variable within our dataset.
+```{r results= FALSE}
+test_diabetes<- data_set_dia %>% mutate(Diabetes_012 = ifelse(Diabetes_012!= "0", "1",Diabetes_012))
+```
+
+```{r results= FALSE}
+Conteo_Diabetes<- table(test_diabetes$Diabetes_012)
+```
+
+```{r results= FALSE}
+Conteo_Diabetes
+```
